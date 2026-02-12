@@ -1,0 +1,336 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Findmarket Design System
+   Color Palette: 60% Deep Blue (structure & trust), 30% White/Light Gray (clean UI), 10% Teal (actions & emphasis)
+   Product accent: Teal/Cyan | Service accent: Violet/Purple
+*/
+
+@layer base {
+  :root {
+    /* Core backgrounds - 30% White/Light Gray */
+    --background: 210 25% 97%;
+    --foreground: 215 45% 20%;
+
+    /* Card surfaces */
+    --card: 0 0% 100%;
+    --card-foreground: 215 45% 20%;
+
+    /* Popover surfaces */
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 45% 20%;
+
+    /* Primary brand - 60% Deep Blue */
+    --primary: 215 70% 25%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Soft gray */
+    --secondary: 210 20% 94%;
+    --secondary-foreground: 215 45% 20%;
+
+    /* Muted surfaces */
+    --muted: 210 20% 94%;
+    --muted-foreground: 215 20% 50%;
+
+    /* Accent - 10% Teal for CTAs */
+    --accent: 173 80% 35%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Product accent - Teal/Cyan */
+    --product: 173 80% 35%;
+    --product-foreground: 0 0% 100%;
+    --product-light: 173 60% 94%;
+
+    /* Service accent - Violet/Purple */
+    --service: 262 83% 58%;
+    --service-foreground: 0 0% 100%;
+    --service-light: 262 60% 96%;
+
+    /* Success - Green */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    /* Destructive/Error */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders and inputs */
+    --border: 214 32% 88%;
+    --input: 214 32% 88%;
+    --ring: 215 70% 25%;
+
+    /* Radius */
+    --radius: 0.75rem;
+
+    /* Sidebar */
+    --sidebar-background: 215 70% 25%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 173 80% 35%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 60% 35%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 215 50% 35%;
+    --sidebar-ring: 173 80% 35%;
+
+    /* Custom gradients - Deep Blue based */
+    --gradient-hero: linear-gradient(135deg, hsl(215 70% 25%) 0%, hsl(215 65% 35%) 50%, hsl(195 60% 30%) 100%);
+    --gradient-product: linear-gradient(135deg, hsl(173 80% 35%) 0%, hsl(173 80% 28%) 100%);
+    --gradient-service: linear-gradient(135deg, hsl(262 83% 58%) 0%, hsl(262 83% 45%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(173 80% 35%) 0%, hsl(173 80% 28%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(210 25% 98%) 100%);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-glow-product: 0 0 20px hsl(173 80% 35% / 0.3);
+    --shadow-glow-service: 0 0 20px hsl(262 83% 58% / 0.3);
+  }
+
+  .dark {
+    --background: 215 50% 8%;
+    --foreground: 210 40% 98%;
+
+    --card: 215 50% 10%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 215 50% 10%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 215 70% 25%;
+
+    --secondary: 215 40% 15%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 215 40% 15%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 173 80% 45%;
+    --accent-foreground: 215 50% 8%;
+
+    --product: 173 80% 45%;
+    --product-foreground: 215 50% 8%;
+    --product-light: 173 40% 15%;
+
+    --service: 262 83% 65%;
+    --service-foreground: 215 50% 8%;
+    --service-light: 262 40% 15%;
+
+    --success: 142 76% 42%;
+    --success-foreground: 215 50% 8%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 215 40% 18%;
+    --input: 215 40% 18%;
+    --ring: 212 27% 84%;
+
+    --sidebar-background: 215 50% 6%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 173 80% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 40% 15%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 215 40% 15%;
+    --sidebar-ring: 173 80% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-muted/50;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/50;
+  }
+}
+
+@layer components {
+  /* Hero gradient background */
+  .bg-hero-gradient {
+    background: var(--gradient-hero);
+  }
+
+  /* Product themed elements */
+  .bg-product {
+    background-color: hsl(var(--product));
+  }
+
+  .bg-product-light {
+    background-color: hsl(var(--product-light));
+  }
+
+  .text-product {
+    color: hsl(var(--product));
+  }
+
+  .border-product {
+    border-color: hsl(var(--product));
+  }
+
+  /* Service themed elements */
+  .bg-service {
+    background-color: hsl(var(--service));
+  }
+
+  .bg-service-light {
+    background-color: hsl(var(--service-light));
+  }
+
+  .text-service {
+    color: hsl(var(--service));
+  }
+
+  .border-service {
+    border-color: hsl(var(--service));
+  }
+
+  /* Success themed elements */
+  .bg-success {
+    background-color: hsl(var(--success));
+  }
+
+  .text-success {
+    color: hsl(var(--success));
+  }
+
+  /* Gradient cards */
+  .card-gradient {
+    background: var(--gradient-card);
+  }
+
+  /* Glow effects */
+  .glow-product {
+    box-shadow: var(--shadow-glow-product);
+  }
+
+  .glow-service {
+    box-shadow: var(--shadow-glow-service);
+  }
+
+  /* Glass effect */
+  .glass {
+    @apply bg-white/80 backdrop-blur-md border border-white/20;
+  }
+
+  /* Animated gradient border */
+  .gradient-border {
+    position: relative;
+    background: linear-gradient(hsl(var(--card)), hsl(var(--card))) padding-box,
+                linear-gradient(135deg, hsl(var(--product)), hsl(var(--service))) border-box;
+    border: 2px solid transparent;
+  }
+
+  /* Floating animation */
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+
+  /* Pulse glow animation */
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px hsl(173 80% 35% / 0.4); }
+    50% { box-shadow: 0 0 40px hsl(173 80% 35% / 0.6); }
+  }
+
+  /* Slide up animation */
+  .animate-slide-up {
+    animation: slide-up 0.5s ease-out forwards;
+  }
+
+  @keyframes slide-up {
+    from { 
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Fade in animation */
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out forwards;
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Scale in animation */
+  .animate-scale-in {
+    animation: scale-in 0.3s ease-out forwards;
+  }
+
+  @keyframes scale-in {
+    from { 
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to { 
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}
+
+@layer utilities {
+  /* Text gradient */
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(var(--product)) 0%, hsl(var(--service)) 100%);
+  }
+
+  /* Container with max width */
+  .container-custom {
+    @apply mx-auto px-4 sm:px-6 lg:px-8;
+    max-width: 1280px;
+  }
+
+  /* Shadow utilities */
+  .shadow-soft {
+    box-shadow: var(--shadow-md);
+  }
+
+  .shadow-elevated {
+    box-shadow: var(--shadow-lg);
+  }
+
+  .shadow-floating {
+    box-shadow: var(--shadow-xl);
+  }
+}
