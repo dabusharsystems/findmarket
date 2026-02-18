@@ -299,10 +299,9 @@ const ListingDetail = () => {
         .eq('id', user.id)
         .single();
 
-      // 2. Initiate payment & redirect to Flutterwave
+      // 2. Initiate payment & redirect to Flutterwave (fee is calculated server-side)
       const { paymentLink } = await initiatePayment({
         bidId: bid.id,
-        amount: bidFeeInfo.fee,
         email: profile?.email || user.email || '',
         name: profile?.name || 'Seller',
         phone: profile?.phone || undefined,
@@ -348,7 +347,6 @@ const ListingDetail = () => {
 
       const { paymentLink } = await initiatePayment({
         bidId: bid.id,
-        amount: bid.bid_fee || bidFeeInfo.fee,
         email: profile?.email || user.email || '',
         name: profile?.name || 'Seller',
         phone: profile?.phone || undefined,

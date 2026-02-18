@@ -110,10 +110,19 @@
  
        console.log('Bid payment status updated:', bid);
  
-       // Record the payment transaction
+      // Update the existing pending payment record (created by initiate-payment)
        const { error: paymentError } = await supabase
          .from('payments')
-         .insert({
+         .update({
+           status: 'successful',
+           flutterwave_tx_ref: String(flw_transaction_id),
+         })
+         .eq('transaction_ref', tx_ref);
+
+       if (paymentError) {
+         console.error('Error updating payment record:', paymentError);
+         // Fallback: try inserting if the pending record doesn't exist
+         await supabase.from('payments').insert({
            user_id: bid.seller_id,
            bid_id: entityId,
            amount: amount,
@@ -123,10 +132,6 @@
            transaction_ref: tx_ref,
            flutterwave_tx_ref: String(flw_transaction_id),
          });
- 
-       if (paymentError) {
-         console.error('Error recording payment:', paymentError);
-         // Don't fail the webhook, bid is already updated
        }
  
        // Get the listing to find the buyer for notification

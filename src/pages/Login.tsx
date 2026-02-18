@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -37,7 +38,22 @@ const Login = () => {
       description: 'You have successfully signed in.',
     });
 
-    navigate('/');
+    // Fetch the user's role to redirect to the correct dashboard
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    let dashboardPath = '/';
+    if (authUser) {
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', authUser.id)
+        .single();
+
+      if (roleData?.role === 'buyer') dashboardPath = '/dashboard/buyer';
+      else if (roleData?.role === 'seller') dashboardPath = '/dashboard/seller';
+      else if (roleData?.role === 'admin') dashboardPath = '/dashboard/admin';
+    }
+
+    navigate(dashboardPath);
   };
 
   return (

@@ -2,7 +2,6 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface InitiatePaymentParams {
   bidId: string;
-  amount: number;
   email: string;
   name: string;
   phone?: string;
@@ -10,13 +9,12 @@ interface InitiatePaymentParams {
 
 export async function initiatePayment({
   bidId,
-  amount,
   email,
   name,
   phone,
 }: InitiatePaymentParams): Promise<{ paymentLink: string; txRef: string }> {
   const { data, error } = await supabase.functions.invoke("initiate-payment", {
-    body: { bid_id: bidId, amount, email, name, phone },
+    body: { bid_id: bidId, email, name, phone },
   });
 
   if (error || !data?.payment_link) {

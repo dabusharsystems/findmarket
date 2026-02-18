@@ -8,10 +8,35 @@ const corsHeaders = {
 
 interface PaymentRequest {
   bid_id: string;
-  amount: number;
+  amount?: number; // Client hint only -- server recalculates
   email: string;
   name: string;
   phone?: string;
+}
+
+// ── Server-side bid fee calculation (mirrors src/lib/bidFees.ts) ──
+type TrustLevel = "low" | "standard" | "trusted" | "verified";
+
+const TRUST_MULTIPLIERS: Record<TrustLevel, number> = {
+  verified: 0.8,
+  trusted: 0.9,
+  standard: 1.0,
+  low: 1.15,
+};
+
+function calculateBidFeeServer(budgetMax: number | null, budgetMin: number | null): number {
+  const budget = budgetMax ?? budgetMin ?? 0;
+  if (budget <= 2_000) return 20;
+  if (budget <= 15_000) return 100;
+  if (budget <= 100_000) return 400;
+  if (budget <= 500_000) return 1_500;
+  if (budget <= 1_000_000) return 3_000;
+  return 5_000;
+}
+
+function applyTrustDiscount(baseFee: number, trustLevel: TrustLevel): number {
+  const multiplier = TRUST_MULTIPLIERS[trustLevel] ?? 1.0;
+  return Math.round(baseFee * multiplier);
 }
 
 Deno.serve(async (req) => {
@@ -56,17 +81,66 @@ Deno.serve(async (req) => {
     }
 
     const body: PaymentRequest = await req.json();
-    const { bid_id, amount, email, name, phone } = body;
+    const { bid_id, email, name, phone } = body;
 
-    if (!bid_id || !amount || !email || !name) {
+    if (!bid_id || !email || !name) {
       return new Response(
-        JSON.stringify({ error: "bid_id, amount, email, and name are required" }),
+        JSON.stringify({ error: "bid_id, email, and name are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Fetch Flutterwave keys from platform_settings
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // ── Fetch bid + listing to compute fee server-side ──
+    const { data: bidData, error: bidError } = await supabaseAdmin
+      .from("bids")
+      .select("listing_id, seller_id")
+      .eq("id", bid_id)
+      .single();
+
+    if (bidError || !bidData) {
+      return new Response(
+        JSON.stringify({ error: "Bid not found" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Verify the requesting user owns this bid
+    if (bidData.seller_id !== user.id) {
+      return new Response(
+        JSON.stringify({ error: "You can only pay for your own bids" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { data: listingData, error: listingError } = await supabaseAdmin
+      .from("listings")
+      .select("budget_max, budget_min")
+      .eq("id", bidData.listing_id)
+      .single();
+
+    if (listingError || !listingData) {
+      return new Response(
+        JSON.stringify({ error: "Listing not found" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Fetch seller trust level for discount
+    const { data: sellerProfile } = await supabaseAdmin
+      .from("profiles")
+      .select("trust_level")
+      .eq("id", user.id)
+      .single();
+
+    const trustLevel: TrustLevel = (sellerProfile?.trust_level as TrustLevel) || "standard";
+    const baseFee = calculateBidFeeServer(listingData.budget_max, listingData.budget_min);
+    const amount = applyTrustDiscount(baseFee, trustLevel);
+
+    console.log("Server-calculated fee:", { baseFee, trustLevel, amount, budget_max: listingData.budget_max });
+
+    // Fetch Flutterwave keys from platform_settings
     const { data: settingsData, error: settingsError } = await supabaseAdmin
       .from("platform_settings")
       .select("value")
@@ -81,11 +155,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    const config = settingsData.value as {
-      mode: "sandbox" | "live";
-      flutterwave_public_key: string;
-    };
-
     const FLUTTERWAVE_SECRET_KEY = Deno.env.get("FLUTTERWAVE_SECRET_KEY");
     if (!FLUTTERWAVE_SECRET_KEY) {
       console.error("FLUTTERWAVE_SECRET_KEY not set");
@@ -98,21 +167,12 @@ Deno.serve(async (req) => {
     // Generate unique tx_ref
     const tx_ref = `bid_${bid_id}_${Date.now()}`;
 
-    // Determine redirect URL (back to the listing)
-    const { data: bidData } = await supabaseAdmin
-      .from("bids")
-      .select("listing_id")
-      .eq("id", bid_id)
-      .single();
-
     const baseRedirectUrl =
       Deno.env.get("PUBLIC_SITE_URL") ||
       req.headers.get("origin") ||
       "https://b2cb88a0-328f-40d7-8820-289b8ff8e988.lovable.app";
 
-    const redirectUrl = bidData?.listing_id
-      ? `${baseRedirectUrl}/listing/${bidData.listing_id}?payment=success`
-      : `${baseRedirectUrl}/dashboard/seller?payment=success`;
+    const redirectUrl = `${baseRedirectUrl}/payment/callback?tx_ref=${tx_ref}&bid_id=${bid_id}`;
 
     // Create a pending payment record
     const { error: paymentInsertError } = await supabaseAdmin
@@ -129,7 +189,6 @@ Deno.serve(async (req) => {
 
     if (paymentInsertError) {
       console.error("Error creating payment record", paymentInsertError);
-      // Non-fatal, continue to initiate payment
     }
 
     // Build Flutterwave Standard hosted payment link
